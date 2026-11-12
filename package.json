@@ -1,0 +1,17 @@
+{
+  "name": "field-crm-ad",
+  "private": true,
+  "version": "1.0.0",
+  "description": "9:16 code-rendered ad: HTML seek(t) + Playwright + ffmpeg",
+  "scripts": {
+    "preview": "node scripts/serve.cjs",
+    "stills": "node scripts/stills.cjs",
+    "audio": "node scripts/audio.cjs",
+    "render": "node scripts/render.cjs",
+    "remux": "ffmpeg -y -v error -i out/final.mp4 -i out/audio.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 256k -shortest -movflags +faststart out/_f.mp4 && mv out/_f.mp4 out/final.mp4",
+    "build": "node scripts/audio.cjs && node scripts/render.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
+  }
+}
