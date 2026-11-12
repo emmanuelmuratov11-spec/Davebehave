@@ -3,6 +3,31 @@
 const OFF = '#F2F2F0', INK = '#14110f', NIGHT = '#0C0B10';
 const { BOOKED, LEAKS, PAID, HIT, CUTS } = TL;
 
+// ---------- layout ----------
+// Scenes are authored in portrait coordinates. Each group of elements is drawn
+// through a transform from this table, so the 16:10 layout re-places the same
+// groups (text one side, hero the other) instead of scaling the whole frame.
+const ID = { s: 1, tx: 0, ty: 0 };
+const at = (px, py, x, y, s = 1) => ({ s, tx: x - s * px, ty: y - s * py });   // portrait point -> frame point
+const mixT = (A, Bt, k) => ({ s: lerp(A.s, Bt.s, k), tx: lerp(A.tx, Bt.tx, k), ty: lerp(A.ty, Bt.ty, k) });
+const gB = (ctx, T) => { ctx.save(); ctx.transform(T.s, 0, 0, T.s, T.tx, T.ty); };
+const gE = (ctx) => ctx.restore();
+const LAY = WIDE ? {
+  s1head: at(540, 440, 490, 300), s1card: at(540, 1060, 1380, 640), s2lying: at(540, 1040, 1060, 700, 1.4), s2toyou: at(600, 1330, 1340, 1030, 1.1),
+  s3head: at(540, 370, 480, 560), s3hero: at(540, 1100, 1400, 640, 0.95), s4: at(540, 1010, 960, 650),
+  s5head: at(540, 350, 460, 400, 0.9), s5hero: at(540, 1100, 1360, 610, 0.92), s5delta: at(540, 1615, 460, 790),
+  ghostFrom: [300, 2000], ghostTo: [60, -420], calFrom: 1700,
+  s6moon: at(948, 132, 1800, 110), s6head: at(540, 365, 470, 300), s6clock: at(540, 1040, 1420, 600, 1.08), s6time: at(540, 1300, 480, 760, 0.88), clockMin: 0.92, clockY2: 1040,
+  title: [960, 600, 0.95], chips: [[420, 150], [960, 105], [1500, 165], [1500, 1050], [960, 1095], [420, 1040]], core: [960, 540],
+  s10a: at(540, 600, 480, 600, 0.95), s10b: at(540, 1290, 1400, 600, 0.95),
+} : {
+  s1head: ID, s1card: ID, s2lying: ID, s2toyou: ID, s3head: ID, s3hero: ID, s4: ID, s5head: ID, s5hero: ID, s5delta: ID,
+  ghostFrom: [-200, 1640], ghostTo: [-260, 800], calFrom: 900,
+  s6moon: ID, s6head: ID, s6clock: ID, s6time: ID, clockMin: 0.62, clockY2: 800,
+  title: [540, 960, 1], chips: [[270, 215], [790, 345], [330, 480], [770, 1420], [330, 1570], [740, 1720]], core: [540, 900],
+  s10a: ID, s10b: ID,
+};
+
 // ---------- shared bits ----------
 function bgOrange(ctx, t, B) {
   const g = ctx.createRadialGradient(W * 0.3, H * 0.25, 50, W / 2, H / 2, H * 0.8);
@@ -38,7 +63,7 @@ function glitch(ctx, amt, seed, yc, yr, draw) {
   draw(null);
   if (amt > 6) for (let i = 0; i < 6; i++) {
     const y = yc + (hash(seed * 7.3 + i) - 0.5) * 2 * yr, hh = 14 + hash(seed * 3.1 + i) * 56, dx = (hash(seed + i * 5.7) - 0.5) * amt * 5;
-    ctx.save(); ctx.beginPath(); ctx.rect(0, y, W, hh); ctx.clip(); ctx.translate(dx, 0); draw(i % 2 ? '#00E5FF' : null); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(-4000, y, 8000, hh); ctx.clip(); ctx.translate(dx, 0); draw(i % 2 ? '#00E5FF' : null); ctx.restore();
   }
 }
 function cornerLabel(ctx, t, B, a = 1) {
@@ -78,14 +103,18 @@ function calendarCard(ctx, s, B) {
 }
 function scene1(ctx, s, t, B) {
   bgOrange(ctx, t, B);
+  gB(ctx, LAY.s1head);
   richLine(ctx, [{ t: 'Your' }, { t: 'calendar' }], 540, 360, 132, s, { at: 0.12, stagger: 0.22, color: '#fff' });
   richLine(ctx, [{ t: 'is', serif: true, color: INK }], 540, 520, 150, s, { at: 2.3 });
+  gE(ctx);
   const [sx, sy] = pop2(s - 0.8, 2.6, 0.42);
+  gB(ctx, LAY.s1card);
   if (sx > 0) {
     ctx.save(); ctx.translate(540, 1060 + (1 - Math.min(1, sx)) * 500 + Math.sin(t * 1.8) * 10);
     ctx.rotate(-0.035 + Math.sin(t * 1.3) * 0.012 + (1 - spring(s - 0.8, 2.2, 0.5)) * 0.25); ctx.scale(sx, sy);
     calendarCard(ctx, s, B); ctx.restore();
   }
+  gE(ctx);
 }
 function scene2(ctx, s, t, B) {
   const q = s - (HIT.shatter - CUTS[1]);     // time since shatter
@@ -93,15 +122,19 @@ function scene2(ctx, s, t, B) {
   ctx.save(); ctx.translate((hash(Math.floor(t * 30)) - 0.5) * shake, (hash(Math.floor(t * 30) + 9) - 0.5) * shake);
   bgOrange(ctx, t, B);
   // headline stays, card recoils then falls
+  gB(ctx, LAY.s1head);
   ctx.save(); ctx.globalAlpha = 1 - prog(q, 0, 0.25);
   text(ctx, 'Your calendar', 540, 360, 132, { color: '#fff' });
   text(ctx, 'is', 540, 523, 150, { serif: true, color: INK }); ctx.restore();
+  gE(ctx);
   const fall = q > 0 ? q : 0;
+  gB(ctx, LAY.s1card);
   ctx.save(); ctx.translate(540 + kick(s, 6, 6) * 30, 1060 + Math.sin(t * 1.8) * 10 * (1 - prog(s, 0, 0.1)) + 2400 * fall * fall + (q > 0 ? -160 * fall : 0));
   ctx.rotate(-0.035 + 0.1 * spring(s, 3, 0.3) + fall * 1.3); ctx.scale(1 - 0.06 * prog(s, 0, 0.1), 1 - 0.06 * prog(s, 0, 0.1));
   calendarCard(ctx, 3, B);
   ctx.fillStyle = 'rgba(20,17,15,.28)'; rr(ctx, -440, -280, 880, 560, 60); ctx.fill();
   ctx.restore();
+  gE(ctx);
 
   // LYING.
   const size = 292, word = 'LYING.', cx = 540, cy = 1040;
@@ -111,6 +144,7 @@ function scene2(ctx, s, t, B) {
   const seed = Math.floor(t * 30);
   const burst = s > 0.3 && s < 0.42 ? 16 : s > 0.92 && s < 0.99 ? 9 : 0;
   const amt = 46 * Math.exp(-s * 8) + burst + 2.2 * (0.5 + 0.5 * Math.sin(t * 40));
+  gB(ctx, LAY.s2lying);
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(-0.07); ctx.scale(sc, sc);
   const drawWord = (col) => {
     font(ctx, size, { ls: -0.05 }); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
@@ -138,14 +172,17 @@ function scene2(ctx, s, t, B) {
   };
   glitch(ctx, q > 0 ? 0 : amt, seed, 0, size * 0.4, drawWord);
   ctx.restore();
+  gE(ctx);
 
   // "to you."
   const [tx, ty] = pop2(s - 0.6, 3.2, 0.36);
+  gB(ctx, LAY.s2toyou);
   if (tx > 0) {
     const d = Math.max(0, q - 0.08);
     ctx.save(); ctx.translate(600 + 260 * d, 1330 - 500 * d + 2700 * d * d); ctx.rotate(-0.05 + d * 2.2 + (1 - spring(s - 0.6, 2.4, 0.4)) * 0.2); ctx.scale(tx, ty);
     text(ctx, 'to you.', 0, 0, 220, { serif: true, color: '#fff' }); ctx.restore();
   }
+  gE(ctx);
   ctx.restore();
   const fl = 1 - prog(s, 0, 0.12);
   if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${fl * 0.85})`; ctx.fillRect(0, 0, W, H); }
@@ -167,6 +204,7 @@ function scene3(ctx, s, t, B) {
   bgLight(ctx, t, B);
   // ground shadow line
   const swap = 1.7;
+  gB(ctx, LAY.s3head);
   richLine(ctx, [{ t: 'It' }, { t: 'says' }], 540, 290, 136, s, { at: 0.05, stagger: 0.1, out: swap - 0.14, color: INK });
   richLine(ctx, [{ t: 'you' }, { t: 'booked' }], 540, 440, 136, s, { at: 0.25, stagger: 0.1, out: swap - 0.14, color: INK });
   // "actually" gets the RGB split
@@ -175,6 +213,7 @@ function scene3(ctx, s, t, B) {
   if (s > swap + 0.12) glitch(ctx, ga, Math.floor(t * 30), 300, 80, (col) =>
     richLine(ctx, [{ t: 'actually', serif: true, color: col || B.color }], 690, 300, 150, s, { at: swap + 0.12 }));
   richLine(ctx, [{ t: 'got' }, { t: 'paid' }], 540, 450, 136, s, { at: swap + 0.3, stagger: 0.1, color: INK });
+  gE(ctx);
 
   const m = E.inOut(prog(s, 1.95, 2.75));            // melt
   const re = prog(s, 2.72, 3.3);                     // reform
@@ -184,6 +223,7 @@ function scene3(ctx, s, t, B) {
   const bcy = lerp(by, GROUND - 60, E.in(m));
   const rx = R * (1 - 0.78 * m) * px, ry = R * (1 - 0.86 * m) * (1 + 0.3 * Math.sin(Math.PI * m)) * py;
   const smallR = 158 * sp, scy = GROUND - 128 * sp + Math.sin(t * 3) * 5 * re;
+  gB(ctx, LAY.s3hero);
   if (px > 0) {
     const k = E.inOut(prog(m, 0.45, 1));
     const shade = { cx: 540, cy: lerp(bcy, GROUND - 130, k), r: lerp(R * Math.max(px, 0.3), 165, k), color: B.color };
@@ -220,6 +260,7 @@ function scene3(ctx, s, t, B) {
     ctx.restore();
     for (let i = 0; i < 3; i++) { ctx.fillStyle = `rgba(138,144,156,${0.5 * sg})`; ctx.beginPath(); ctx.arc(720 - i * 26, 1262 + i * 20 - (s - 3.25) * 20, 12 - i * 3, 0, TAU); ctx.fill(); }
   }
+  gE(ctx);
 }
 
 // ---------- 4: where'd it go? ----------
@@ -230,6 +271,7 @@ function scene4(ctx, s, t, B) {
   const qs = spring(s - 0.06, 3, 0.36) * (1 - g);
   const qx = lerp(540, 92, g), qy = lerp(1010 + Math.sin(t * 4) * 10, 118, g);
   const br = lerp(158, 0, p) + 40 * g, bx = lerp(540, qx, Math.max(p, g)), byy = lerp(GROUND - 128, qy, Math.max(p, g));
+  gB(ctx, mixT(mixT(LAY.s3hero, LAY.s4, p), ID, g));
   goo(ctx, (c) => {
     if (br > 1) { blobPath(c, bx, byy, br, br, t * 2, 0.05, 7); c.fill(); }
     if (qs > 0.01) {
@@ -247,6 +289,7 @@ function scene4(ctx, s, t, B) {
     if (k > 0.01) { ctx.save(); ctx.translate(540 + Math.sin(a) * Rr, 1010 - Math.cos(a) * Rr); ctx.rotate(a); ctx.scale(k, k); text(ctx, ch, 0, 0, size, { color: INK }); ctx.restore(); }
     acc += ws[i];
   });
+  gE(ctx);
   if (g > 0.6) { ctx.save(); ctx.globalAlpha = prog(g, 0.6, 1); eyes(ctx, 94, 114, 9, 12, { lx: 0.6, ly: -0.2 }); text(ctx, "where'd it go?", 150, 120, 40, { align: 'left', weight: 800, color: INK, ls: -0.03 }); ctx.restore(); }
 }
 
@@ -276,10 +319,13 @@ function scene5(ctx, s, t, B) {
   // heading
   const lab = LEAKS[k].label;
   const lines = { 0: [['No-shows', 'ate']], 1: [['Unpaid', 'invoices'], ['took']], 2: [['Forgot', 'to'], ['follow', 'up']], 3: [['And', 'the'], ['double-booking?']] }[k];
+  gB(ctx, LAY.s5head);
   lines.forEach((ln, i) => richLine(ctx, ln.map((w) => ({ t: w })), 540, (lines.length === 1 ? 350 : 280) + i * 132, 118, q, { at: 0.04 + i * 0.14, stagger: 0.09, color: INK, out: k < 3 ? 1.86 : 9 }));
+  gE(ctx);
   void lab;
 
   // vortex sits behind the blob
+  gB(ctx, LAY.s5hero);
   if (k === 1) {
     const vs = spring(q - 0.12, 2.6, 0.4) * (1 - E.in(prog(q, 1.6, 1.9)));
     vortex(ctx, 200, 700, vs * 0.95, t);
@@ -316,14 +362,14 @@ function scene5(ctx, s, t, B) {
   }
   if (k === 2) {
     const a = E.out(prog(q, 0.1, hq)), b = E.inOut(prog(q, hq + 0.1, 2.0));
-    const gx = lerp(lerp(-200, 255, a), -260, b), gy = lerp(lerp(1640, 1385, a), 800, b) + Math.sin(t * 5) * 14;
+    const gx = lerp(lerp(LAY.ghostFrom[0], 255, a), LAY.ghostTo[0], b), gy = lerp(lerp(LAY.ghostFrom[1], 1385, a), LAY.ghostTo[1], b) + Math.sin(t * 5) * 14;
     ghost(ctx, gx, gy, 0.8 * (1 + kick(q - hq, 4, 6) * 0.08), t, q >= hq, B.color);
   }
   if (k === 3) {
     const a = E.in(prog(q, 0.42, hq)), d = Math.max(0, q - hq);
     const reach = R * 0.82 + 150;
     for (const sd of [-1, 1]) {
-      const x = 540 + sd * (lerp(900, reach, a) + (d > 0 ? 420 * d - 90 * Math.exp(-d * 9) : 0));
+      const x = 540 + sd * (lerp(LAY.calFrom, reach, a) + (d > 0 ? 420 * d - 90 * Math.exp(-d * 9) : 0));
       const y = 1100 + sd * 26 + (d > 0 ? -380 * d + 2000 * d * d : 0);
       calBlock(ctx, x, y, 1, sd * (0.06 - a * 0.1) + sd * d * 3.4, sd < 0 ? 'Smith · Tune-up' : 'Lopez · Detail', sd < 0 ? '#4DA8FF' : '#7B4DFF');
     }
@@ -332,14 +378,17 @@ function scene5(ctx, s, t, B) {
       for (let i = 0; i < 10; i++) { const an = i * 0.628 + 0.3, r0 = R + 40 + d * 500, r1 = r0 + 60; ctx.beginPath(); ctx.moveTo(540 + Math.cos(an) * r0, 1100 + Math.sin(an) * r0); ctx.lineTo(540 + Math.cos(an) * r1, 1100 + Math.sin(an) * r1); ctx.stroke(); }
     }
   }
+  gE(ctx);
   // delta
   const dq = q - hq;
+  gB(ctx, LAY.s5delta);
   if (dq > 0) {
     const [dx, dy] = pop2(dq, 3.4, 0.32), out = k < 3 ? E.in(prog(q, 1.8, 1.98)) : 0;
     ctx.save(); ctx.translate(540, 1100 + R + 215 - out * 60); ctx.rotate(-0.06 + kick(dq, 3, 5) * 0.12); ctx.scale(dx * (1 - out), dy * (1 - out));
     glitch(ctx, 22 * Math.exp(-dq * 10), Math.floor(t * 30), 0, 80, (col) => text(ctx, '−' + fmt$(LEAKS[k].amt), 0, 0, 190, { serif: true, color: col || B.color }));
     ctx.restore();
   }
+  gE(ctx);
   if (since >= 0 && since < 0.09) { ctx.fillStyle = `rgba(255,255,255,${0.5 * (1 - since / 0.09)})`; ctx.fillRect(0, 0, W, H); }
 }
 
@@ -350,18 +399,23 @@ function scene6(ctx, s, t, B) {
   ctx.save(); ctx.translate((hash(Math.floor(t * 30)) - 0.5) * shake, (hash(Math.floor(t * 30) + 4) - 0.5) * shake);
   bgNight(ctx, t, B, 0.14);
   // moon
+  gB(ctx, LAY.s6moon);
   ctx.save(); ctx.translate(948, 132 + Math.sin(t) * 8); ctx.fillStyle = '#F5EBD0'; ctx.beginPath(); ctx.arc(0, 0, 46, 0, TAU); ctx.fill();
   ctx.fillStyle = NIGHT; ctx.beginPath(); ctx.arc(20, -12, 41, 0, TAU); ctx.fill(); ctx.restore();
+  gE(ctx);
   const up = E.inOut(prog(hq, -0.1, 0.15));
+  gB(ctx, LAY.s6head);
   ctx.save(); ctx.translate(0, -up * 60);
   richLine(ctx, [{ t: 'And' }, { t: 'you' }, { t: 'only' }], 540, 300, 118, s, { at: 0.06, stagger: 0.08, color: '#fff' });
   richLine(ctx, [{ t: 'find' }, { t: 'out' }, { t: 'at' }], 540, 430, 118, s, { at: 0.3, stagger: 0.08, color: '#fff' });
   ctx.restore();
+  gE(ctx);
   // clock
   const [cx0, cy0] = pop2(s - 0.42, 2.8, 0.38);
+  gB(ctx, LAY.s6clock);
   if (cx0 > 0) {
-    const sc = lerp(1, 0.62, up), R = 290;
-    ctx.save(); ctx.translate(540, lerp(1040, 800, up) + Math.sin(t * 2) * 8); ctx.scale(cx0 * sc, cy0 * sc); ctx.rotate(kick(hq, 4, 5) * 0.08);
+    const sc = lerp(1, LAY.clockMin, up), R = 290;
+    ctx.save(); ctx.translate(540, lerp(1040, LAY.clockY2, up) + Math.sin(t * 2) * 8); ctx.scale(cx0 * sc, cy0 * sc); ctx.rotate(kick(hq, 4, 5) * 0.08);
     ctx.shadowColor = rgba(B.color, 0.5); ctx.shadowBlur = 90;
     ctx.fillStyle = B.color; ctx.beginPath(); ctx.arc(0, 0, R + 26, 0, TAU); ctx.fill(); ctx.shadowColor = 'transparent';
     const fg = ctx.createRadialGradient(-80, -100, 20, 0, 0, R); fg.addColorStop(0, '#FFFFFF'); fg.addColorStop(1, '#E6E4DE');
@@ -381,17 +435,22 @@ function scene6(ctx, s, t, B) {
     for (const k of [-1, 1]) { ctx.beginPath(); ctx.arc(k * 74, 110, 22, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); }
     ctx.restore();
   }
+  gE(ctx);
   // 11:47 PM
   if (hq > 0) {
     const sc = 1 + 2 * (1 - E.outExpo(prog(hq, 0, 0.16))) + kick(hq - 0.16, 5, 8) * 0.06;
+  gB(ctx, LAY.s6time);
     ctx.save(); ctx.translate(540, 1300); ctx.rotate(-0.035); ctx.scale(sc, sc);
     glitch(ctx, 40 * Math.exp(-hq * 8) + (hq > 0.5 && hq < 0.58 ? 12 : 0), Math.floor(t * 30), 0, 120, (col) => {
       text(ctx, '11:47', -118, 0, 286, { color: col || '#fff', ls: -0.05 });
       text(ctx, 'PM', 386, 26, 170, { serif: true, color: col || B.color });
     });
     ctx.restore();
+  gE(ctx);
     // zzz
+  gB(ctx, LAY.s6clock);
     for (let i = 0; i < 3; i++) { const z = (hq * 0.7 + i * 0.33) % 1; ctx.save(); ctx.globalAlpha = Math.sin(Math.PI * z) * 0.8; text(ctx, 'z', 790 + z * 90 + i * 14, 700 - z * 170, 50 + z * 50, { serif: true, color: '#9aa0ad' }); ctx.restore(); }
+  gE(ctx);
     const fl = 1 - prog(hq, 0, 0.1); if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${fl * 0.7})`; ctx.fillRect(-50, -50, W + 100, H + 100); }
   }
   ctx.restore();
@@ -403,7 +462,7 @@ const APPS = [
   ['jobs.xlsx', '#1D8F4E', 'X', 770, 1420], ['Invoices.pdf', '#E5484D', 'P', 330, 1570], ['Payments', '#5B6CFF', '$', 740, 1720],
 ];
 function chipPose(i, t) {
-  const [, , , x, y] = APPS[i];
+  const [x, y] = LAY.chips[i];
   const z = Math.sin(t * 1.1 + i * 1.9);                          // fake depth
   return { x: x + Math.sin(t * 0.9 + i * 2.3) * 40 + z * 16, y: y + Math.cos(t * 1.2 + i * 1.3) * 24, s: 1.14 + z * 0.13, rot: Math.sin(t * 0.8 + i) * 0.11 + (i % 2 ? 0.05 : -0.05), z };
 }
@@ -411,7 +470,7 @@ function appsTitle(ctx, s, t, B, k = 1) {
   const n = Math.max(1, Math.min(6, 1 + Math.floor((s - 0.25) / 0.22 + 0.001)));
   const count = s < 0.25 ? 0 : n;
   const oq = s - 1.75;
-  ctx.save(); ctx.translate(540, 960); ctx.scale(k, k); ctx.rotate((1 - k) * 2);
+  ctx.save(); ctx.translate(LAY.title[0], LAY.title[1]); ctx.scale(k * LAY.title[2], k * LAY.title[2]); ctx.rotate((1 - k) * 2);
   const bump = 1 + Math.max(0, kick(((s - 0.25) % 0.22), 6, 14)) * (s < 1.6 && s > 0.25 ? 0.16 : 0);
   ctx.save(); ctx.translate(-330, -130); ctx.scale(bump * Math.min(1, spring(s, 3, 0.4) * 1.0), bump * spring(s, 3, 0.4));
   text(ctx, String(count), 0, 0, 420, { color: B.color, ls: -0.05 }); ctx.restore();
@@ -439,7 +498,7 @@ function scene8(ctx, s, t, B) {
   const shake = lq > 0 ? Math.exp(-lq * 9) * 26 : s * 5;
   ctx.save(); ctx.translate((hash(Math.floor(t * 30)) - 0.5) * shake, (hash(Math.floor(t * 30) + 4) - 0.5) * shake);
   bgNight(ctx, t, B, 0.2 + 0.25 * prog(s, 0, 1.2));
-  const C = [540, 900];
+  const C = LAY.core;
   if (lq < 0) {
     const tk = 1 - E.inBack(prog(s, 0.25, 0.95));
     if (tk > 0.01) appsTitle(ctx, 3 + s, t, B, tk);
@@ -469,7 +528,7 @@ function scene8(ctx, s, t, B) {
     ctx.save(); ctx.translate(C[0], C[1] - 60 + Math.sin(t * 2.4) * 6); ctx.rotate((1 - spring(lq, 2.6, 0.4)) * -0.5); ctx.scale(lx, ly);
     ctx.shadowColor = rgba(B.color, 0.65); ctx.shadowBlur = 110; logoMark(ctx, 0, 0, 330, B.color, '#fff'); ctx.restore();
     const fs = Math.min(170, (170 * 900) / measure(ctx, B.name, 170));
-    richLine(ctx, [{ t: B.name }], 540, 1210, fs, lq, { at: 0.14, color: '#fff' });
+    richLine(ctx, [{ t: B.name }], C[0], C[1] + 310, fs, lq, { at: 0.14, color: '#fff' });
     const fl = 1 - prog(lq, 0, 0.14); if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${fl})`; ctx.fillRect(-50, -50, W + 100, H + 100); }
   }
   ctx.restore();
@@ -484,10 +543,13 @@ function scene10(ctx, s, t, B) {
   ctx.save(); ctx.translate((hash(Math.floor(t * 30)) - 0.5) * shake, (hash(Math.floor(t * 30) + 4) - 0.5) * shake);
   bgOrange(ctx, t, B);
   const [lx, ly] = pop2(s - 0.02, 3, 0.32);
+  gB(ctx, LAY.s10a);
   ctx.save(); ctx.translate(540, 470 + Math.sin(t * 2.2) * 8); ctx.rotate((1 - spring(s, 2.4, 0.4)) * -0.4); ctx.scale(lx, ly);
   ctx.shadowColor = 'rgba(110,15,0,.4)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 26; logoMark(ctx, 0, 0, 250, '#fff', B.color); ctx.restore();
   const fs = Math.min(176, (176 * 920) / measure(ctx, B.name, 176));
   richLine(ctx, [{ t: B.name }], 540, 740, fs, s, { at: 0.14, color: '#fff' });
+  gE(ctx);
+  gB(ctx, LAY.s10b);
   richLine(ctx, [{ t: 'Run' }, { t: 'your' }, { t: 'whole' }, { t: 'day' }], 540, 990, 100, s, { at: 0.5, stagger: 0.07, color: '#fff' });
   richLine(ctx, [{ t: 'in', color: '#fff' }, { t: 'one', serif: true, color: INK }, { t: 'app.', serif: true, color: INK }], 540, 1120, 112, s, { at: 0.8, stagger: 0.09 });
   // button
@@ -505,6 +567,7 @@ function scene10(ctx, s, t, B) {
   }
   const us = Math.min(66, (66 * 900) / measure(ctx, B.url, 66, { weight: 800, ls: -0.02 }));
   ctx.save(); ctx.globalAlpha = prog(s, 1.45, 1.7); text(ctx, B.url, 540, 1590 + (1 - E.out(prog(s, 1.45, 1.8))) * 30, us, { color: '#fff', weight: 800, ls: -0.02 }); ctx.restore();
+  gE(ctx);
   ctx.restore();
   const fl = 1 - prog(s, 0, 0.12); if (fl > 0) { ctx.fillStyle = `rgba(255,255,255,${fl * 0.8})`; ctx.fillRect(0, 0, W, H); }
 }

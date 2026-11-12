@@ -9,14 +9,15 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
 (async () => {
   const OUT = path.join(ROOT, 'out'), FR = path.join(OUT, 'frames');
   fs.rmSync(FR, { recursive: true, force: true }); fs.mkdirSync(FR, { recursive: true });
+  const wide = process.argv.includes('--wide'), sfx = wide ? '-16x10' : '';
   const N = +arg('--workers', Math.max(1, Math.min(6, os.cpus().length)));
   const { srv, url } = await serve();
   const browser = await chromium.launch();
   let fps, total, done = 0; const t0 = Date.now();
   const worker = async (k) => {
-    const page = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: wide ? { width: 1920, height: 1200 } : { width: 1080, height: 1920 }, deviceScaleFactor: 1 });
     page.on('pageerror', (e) => { console.error('PAGE ERROR', e.message); process.exit(1); });
-    await page.goto(url + '?render'); await page.waitForFunction('window.ready === true');
+    await page.goto(url + '?render' + (wide ? '&layout=wide' : '')); await page.waitForFunction('window.ready === true');
     if (k === 0) { fps = await page.evaluate('window.FPS'); total = Math.round((await page.evaluate('window.DURATION')) * fps); }
     return async () => {
       for (let f = k; f < total; f += N) {
@@ -34,13 +35,13 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
   const audio = path.join(OUT, 'audio.wav'), hasAudio = fs.existsSync(audio);
   if (!hasAudio) console.warn('no out/audio.wav - run `npm run audio` first for sound');
   // video-only master first, so audio can be swapped later without re-rendering
-  const master = path.join(OUT, 'video.mp4');
+  const master = path.join(OUT, `video${sfx}.mp4`);
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(fps), '-i', path.join(FR, 'f%05d.png'),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '15', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-r', String(fps),
     '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
     '-movflags', '+faststart', master], { stdio: 'inherit' });
   execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', master, ...(hasAudio ? ['-i', audio, '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000'] : []),
-    '-c:v', 'copy', '-movflags', '+faststart', path.join(OUT, 'final.mp4')], { stdio: 'inherit' });
+    '-c:v', 'copy', '-movflags', '+faststart', path.join(OUT, `final${sfx}.mp4`)], { stdio: 'inherit' });
   if (!process.argv.includes('--keep-frames')) fs.rmSync(FR, { recursive: true, force: true });
-  console.log(`done -> out/final.mp4  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
+  console.log(`done -> out/final${sfx}.mp4  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
 })();

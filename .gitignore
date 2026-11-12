@@ -4,3 +4,4 @@ out/stills/
 out/*.wav
 out/*.json
 out/video.mp4
+out/video-16x10.mp4

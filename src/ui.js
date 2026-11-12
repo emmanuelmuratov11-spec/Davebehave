@@ -2,8 +2,15 @@
 // style from scratch as a pure function of scene-local time.
 const UI = (() => {
   let root, win, chrome, cards = [], sts = [], chips = [], phone, rings = [], core, msg, cc, gooL, ghosts = [], pillBase, pill, pillTx, caps = [], live;
-  const CARD_TOP = (i) => 562 + i * 152, CARD = { x: 306, w: 698, h: 136 };
-  const PILL = { x: 70, y: 780, w: 940, h: 250 };
+  // every position comes from this table, one per layout
+  const L = WIDE ? {
+    win: [70, 120, 1040, 980], card: { x: 326, w: 760, h: 120 }, top0: 278, step: 132, pill: { x: 410, y: 400, w: 1100, h: 270 }, pillFont: [88, 64],
+    chips: [[1190, 105, -0.05], [1330, 225, 0.04], [1215, 345, -0.02]], phone: [1390, 465], cc: [1170, 745], capTop: 770,
+  } : {
+    win: [50, 400, 980, 1110], card: { x: 306, w: 698, h: 136 }, top0: 562, step: 152, pill: { x: 70, y: 780, w: 940, h: 250 }, pillFont: [74, 56],
+    chips: [[60, 128, -0.05], [470, 150, 0.04], [290, 262, -0.02]], phone: [640, 900], cc: [420, 1180], capTop: 1120,
+  };
+  const CARD_TOP = (i) => L.top0 + i * L.step, CARD = L.card, PILL = L.pill;
   const tick = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
   const nfc = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"><path d="M7 8.5a6 6 0 010 7M11 6a10 10 0 010 12M15 3.5a14 14 0 010 17"/></svg>';
   const el = (cls, html = '', parent = root) => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; parent.appendChild(d); return d; };
@@ -12,7 +19,7 @@ const UI = (() => {
   function build(B) {
     root = document.getElementById('ui');
     [['Every', 'job.'], ['Every', 'client.'], ['Every', 'invoice.']].forEach(([a, b]) => chips.push(el('chip', `${a}<i>${b}</i>`)));
-    win = el('win');
+    win = el('win'); win.style.cssText = `left:${L.win[0]}px;top:${L.win[1]}px;width:${L.win[2]}px;height:${L.win[3]}px`;
     chrome = el('chrome', `
       <div class="side">
         <div class="brandrow"><div class="mark">${tick}</div><span id="bn"></span></div>
@@ -25,19 +32,22 @@ const UI = (() => {
     live = chrome.querySelector('.live u');
     TL.JOBS.forEach((j, i) => {
       const c = el('card', `<div class="t">${j.time}</div><div class="m"><div>${j.title}</div><span>${j.client}</span></div><div class="p"><div>${money(j.price)}</div><span class="st"></span></div>`);
-      c.style.top = CARD_TOP(i) + 'px'; cards.push(c); sts.push(c.querySelector('.st'));
+      c.style.cssText = `top:${CARD_TOP(i)}px;left:${CARD.x}px;width:${CARD.w}px;height:${CARD.h}px`; cards.push(c); sts.push(c.querySelector('.st'));
     });
-    cc = el('cc'); cc.style.cssText = 'left:420px;top:1180px;width:270px;height:170px;border-radius:24px;background:linear-gradient(135deg,#2C2A31,#14110f);box-shadow:0 30px 50px rgba(20,17,15,.35)';
+    cc = el('cc'); cc.style.cssText = `left:${L.cc[0]}px;top:${L.cc[1]}px;` + 'width:270px;height:170px;border-radius:24px;background:linear-gradient(135deg,#2C2A31,#14110f);box-shadow:0 30px 50px rgba(20,17,15,.35)';
     cc.innerHTML = '<div style="position:absolute;left:26px;top:60px;width:52px;height:40px;border-radius:9px;background:#FFB703"></div><div style="position:absolute;left:26px;bottom:22px;color:#aaa;font:600 20px Inter;letter-spacing:.14em">•••• 4242</div>';
     phone = el('phone', `<div class="scr"><div class="notch"></div><div class="lbl">${TL.JOBS[1].title} · ${TL.JOBS[1].client}</div><div class="amt">${money(TL.JOBS[1].price, 2)}</div>
       <div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="core"><span class="i1">${nfc}</span><span class="i2">${tick}</span></div><div class="msg"></div></div>`);
+    phone.style.left = L.phone[0] + 'px'; phone.style.top = L.phone[1] + 'px';
     rings = [...phone.querySelectorAll('.ring')]; core = phone.querySelector('.core'); msg = phone.querySelector('.msg');
     gooL = el('goo');
     TL.JOBS.forEach(() => ghosts.push(el('', '', gooL)));
     pillBase = el('', '', gooL);
     pill = el('pill', '<div class="gl"></div><div class="tx"><small>Paid today:</small><span></span></div>');
+    pill.style.cssText = `left:${PILL.x}px;top:${PILL.y}px;width:${PILL.w}px;height:${PILL.h}px;border-radius:${PILL.h / 2}px`;
+    pill.querySelector('.tx').style.fontSize = L.pillFont[0] + 'px'; pill.querySelector('small').style.fontSize = L.pillFont[1] + 'px';
     pillTx = pill.querySelector('.tx span');
-    const cap = el('cap', '<span>Booked.</span><span>Done.</span><span><i>Paid.</i></span>'); caps = [...cap.children];
+    const cap = el('cap', '<span>Booked.</span><span>Done.</span><span><i>Paid.</i></span>'); caps = [...cap.children]; cap.style.top = L.capTop + 'px'; cap.style.width = W + 'px';
   }
   const T = (e, x, y, sx = 1, sy = sx, r = 0) => { e.style.transform = `translate(${x.toFixed(2)}px,${y.toFixed(2)}px) rotate(${r.toFixed(4)}rad) scale(${Math.max(0, sx).toFixed(4)},${Math.max(0, sy).toFixed(4)})`; };
 
@@ -53,7 +63,7 @@ const UI = (() => {
     chrome.style.opacity = 1 - wOut; chrome.style.transform = `scale(${1 - 0.05 * wOut})`;
     live.style.transform = `scale(${1 + 0.35 * Math.max(0, Math.sin(t * 6))})`;
     // chips
-    const cp = [[60, 128, -0.05], [470, 150, 0.04], [290, 262, -0.02]];
+    const cp = L.chips;
     chips.forEach((c, i) => {
       const [sx, sy] = pop2(s - (1.1 + i * 0.5), 3.4, 0.34), out = 1 - E.in(prog(s, M0 - 0.12 + i * 0.03, M0 + 0.1 + i * 0.03));
       c.style.left = cp[i][0] + 'px'; c.style.top = cp[i][1] + 'px';
@@ -97,7 +107,7 @@ const UI = (() => {
       g.style.cssText = `left:${x - w / 2}px;top:${y - h / 2}px;width:${w}px;height:${h}px;border-radius:${lerp(28, 110, Math.min(1, u * 3))}px;opacity:${prog(s, M0, M0 + 0.1)}`;
     });
     const pb = E.out(prog(s, LAND - 0.4, LAND));
-    pillBase.style.cssText = `left:${pc[0] - PILL.w / 2 * pb}px;top:${pc[1] - PILL.h / 2 * pb}px;width:${PILL.w * pb}px;height:${PILL.h * pb}px;border-radius:125px`;
+    pillBase.style.cssText = `left:${pc[0] - PILL.w / 2 * pb}px;top:${pc[1] - PILL.h / 2 * pb}px;width:${PILL.w * pb}px;height:${PILL.h * pb}px;border-radius:${PILL.h / 2}px`;
     const lq = s - LAND, [px, py] = pop2(lq + 0.05, 3, 0.3);
     pill.style.opacity = prog(lq, -0.06, 0.04);
     T(pill, 0, Math.sin(t * 2.2) * 7, 0.9 + 0.1 * px * (1 + kick(lq, 3, 5) * 0.12), 0.9 + 0.1 * py * (1 - kick(lq, 3, 5) * 0.2), kick(lq, 2.6, 5) * 0.03);

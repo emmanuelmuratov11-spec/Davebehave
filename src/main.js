@@ -10,7 +10,9 @@
   await Promise.all(['900 80px Inter', '800 80px Inter', '600 80px Inter', '500 80px Inter', 'italic 400 80px "Instrument Serif"'].map((f) => document.fonts.load(f)));
   await document.fonts.ready;
   UI.build(B);
-  const ctx = document.getElementById('c').getContext('2d');
+  const cv = document.getElementById('c'); cv.width = W; cv.height = H;
+  const stg = document.getElementById('stage'); stg.style.width = W + 'px'; stg.style.height = H + 'px';
+  const ctx = cv.getContext('2d');
 
   function renderBase(b) {
     b = clamp(b, 0, TL.BASE_DUR - 1e-6);

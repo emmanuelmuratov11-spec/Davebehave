@@ -1,5 +1,7 @@
 // Pure helpers. Nothing here keeps state between frames.
-const W = 1080, H = 1920;
+const WIDE = new URLSearchParams(location.search).get('layout') === 'wide';   // 16:10 landscape
+const W = WIDE ? 1920 : 1080, H = WIDE ? 1200 : 1920;
+const GS = 1920;   // offscreen goo buffers cover portrait coordinates in either layout
 const TAU = Math.PI * 2;
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -143,14 +145,14 @@ function vignette(ctx, color, a) {
 // ---- glossy goo -----------------------------------------------------------
 // shapeFn draws solid shapes; they are merged with a goo filter, bitten, then
 // shaded as one glossy 3D surface. `over` draws on the surface (clipped to it).
-const _mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+const _mk = () => { const c = document.createElement('canvas'); c.width = GS; c.height = GS; return c; };
 let _A, _B, _C;
 function goo(ctx, shapeFn, o) {
   _A = _A || _mk(); _B = _B || _mk(); _C = _C || _mk();
   const a = _A.getContext('2d'), b = _B.getContext('2d'), c = _C.getContext('2d');
   const { cx, cy, r, color } = o;
-  a.clearRect(0, 0, W, H); a.fillStyle = '#000'; shapeFn(a);
-  b.save(); b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H);
+  a.clearRect(0, 0, GS, GS); a.fillStyle = '#000'; shapeFn(a);
+  b.save(); b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, GS, GS);
   b.filter = o.goo === false ? 'none' : 'url(#goo)'; b.drawImage(_A, 0, 0); b.filter = 'none';
   // bites
   if (o.bites && o.bites.length) {
@@ -165,10 +167,10 @@ function goo(ctx, shapeFn, o) {
   b.globalCompositeOperation = 'source-atop';
   const g = b.createRadialGradient(cx - r * 0.38, cy - r * 0.45, r * 0.05, cx - r * 0.1, cy - r * 0.1, r * 1.5);
   g.addColorStop(0, mix(color, '#ffd9b0', 0.55)); g.addColorStop(0.3, mix(color, '#ffb070', 0.12)); g.addColorStop(0.62, color); g.addColorStop(1, mix(color, '#5a0000', 0.5));
-  b.fillStyle = g; b.fillRect(0, 0, W, H);
+  b.fillStyle = g; b.fillRect(0, 0, GS, GS);
   // inner shadow (bottom-right) and rim light (top-left) from offset copies
   const rim = (dx, dy, blur, col, alpha) => {
-    c.save(); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, W, H); c.fillStyle = col; c.fillRect(0, 0, W, H);
+    c.save(); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, GS, GS); c.fillStyle = col; c.fillRect(0, 0, GS, GS);
     c.globalCompositeOperation = 'destination-out'; c.filter = `blur(${blur}px)`; c.drawImage(_B, dx, dy); c.restore();
     b.globalAlpha = alpha; b.drawImage(_C, 0, 0); b.globalAlpha = 1;
   };

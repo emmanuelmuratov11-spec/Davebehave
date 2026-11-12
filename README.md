@@ -49,3 +49,10 @@ carried between frames. Frames are rendered out of order across parallel pages a
 lines and says when each one starts. Edit the times (or swap in a new take and update the
 `from`/`to` marks), then `npm run audio && npm run remux`. The effects duck under the voice.
 `node scripts/audio.cjs --no-vo` builds the mix without it.
+
+## 16:10 landscape version
+
+`npm run render:wide` renders `out/final-16x10.mp4` (1920×1200) from the same scenes and the
+same audio. Scenes are authored in portrait coordinates; the `LAY` table at the top of
+`src/scenes.js` (and `L` in `src/ui.js`) re-places each group of elements for the wide frame.
+`node scripts/stills.cjs --wide` gives wide stills.
