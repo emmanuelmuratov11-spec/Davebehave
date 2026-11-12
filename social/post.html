@@ -1,0 +1,71 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Instagram post</title>
+<style>
+@font-face{font-family:Inter;font-weight:600;src:url(../assets/fonts/inter-latin-600-normal.woff2)}
+@font-face{font-family:Inter;font-weight:800;src:url(../assets/fonts/inter-latin-800-normal.woff2)}
+@font-face{font-family:Inter;font-weight:900;src:url(../assets/fonts/inter-latin-900-normal.woff2)}
+@font-face{font-family:"Instrument Serif";font-style:italic;src:url(../assets/fonts/instrument-serif-latin-400-italic.woff2)}
+:root{--o:#FF4A1C;--ink:#14110f}
+*{box-sizing:border-box;margin:0}
+body{width:1080px;height:1350px;overflow:hidden;font-family:Inter;background:linear-gradient(160deg,#F8F7F4,#DFE3EA);position:relative;color:var(--ink)}
+.dot{position:absolute;border-radius:50%;background:var(--o)}
+.bub{position:absolute;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.95) 0 8%,rgba(255,74,28,.18) 30%,rgba(255,74,28,.1) 80%,rgba(255,74,28,.4))}
+h1{position:absolute;left:64px;top:70px;font-weight:900;font-size:112px;line-height:.98;letter-spacing:-.045em}
+h1 i{font-family:"Instrument Serif";font-weight:400;font-size:168px;color:var(--o);letter-spacing:-.01em;display:inline-block;transform:rotate(-3deg) translateY(6px)}
+.tag{position:absolute;left:68px;top:368px;background:var(--ink);color:#fff;font-weight:800;font-size:26px;padding:16px 26px;border-radius:40px;transform:rotate(-3deg);letter-spacing:-.02em;box-shadow:0 14px 30px rgba(20,17,15,.25)}
+.tag b{color:var(--o)}
+.ed{position:absolute;left:44px;top:462px;width:992px;height:786px;border-radius:36px;background:#17161B;box-shadow:0 60px 120px rgba(40,30,30,.38),0 0 0 2px rgba(255,255,255,.06) inset;overflow:hidden;transform:rotate(-1.5deg)}
+.bar{height:58px;display:flex;align-items:center;gap:10px;padding:0 24px;background:#1F1E24;color:#8d8b95;font-weight:600;font-size:20px}
+.bar u{width:15px;height:15px;border-radius:50%;display:block}.bar span{margin-left:14px}
+.bar em{margin-left:auto;font-style:normal;background:var(--o);color:#fff;font-weight:800;padding:8px 18px;border-radius:12px;font-size:18px}
+.mon{position:absolute;left:24px;top:78px;width:944px;height:400px;border-radius:20px;background:#0E0D11;overflow:hidden;display:flex;justify-content:center;align-items:center;gap:22px}
+.mon img{height:340px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.mon img.s{height:290px;opacity:.5}
+.mon img.m{height:372px;outline:4px solid var(--o);outline-offset:3px}
+.tc{position:absolute;left:44px;top:96px;color:#fff;font-weight:800;font-size:22px;font-variant-numeric:tabular-nums}
+.tc b{color:var(--o)}
+.tl{position:absolute;left:24px;right:24px;top:496px;bottom:22px}
+.row{position:absolute;left:0;right:0;height:64px;border-radius:12px;background:#222127;display:flex;align-items:center;overflow:hidden}
+.lab{position:absolute;left:10px;z-index:2;font-weight:800;font-size:15px;color:#fff;background:rgba(0,0,0,.55);padding:4px 9px;border-radius:7px}
+.clip{height:100%;border-radius:10px;margin-right:4px;overflow:hidden;display:flex;border:2px solid rgba(255,255,255,.22)}
+.clip img{height:100%;width:36px;object-fit:cover}
+.wave{display:flex;align-items:center;gap:3px;padding-left:70px;height:100%}
+.wave s{display:block;width:5px;border-radius:3px;background:var(--o)}
+.vo .wave s{background:#5CB4FF}
+.fx{position:absolute;top:14px;height:36px;border-radius:9px;background:#7B4DFF;color:#fff;font-weight:800;font-size:14px;padding:9px 10px}
+.ph{position:absolute;top:-14px;bottom:-6px;left:58.5%;width:4px;background:#fff;border-radius:2px;box-shadow:0 0 14px rgba(255,255,255,.7)}
+.ph:before{content:"";position:absolute;left:-10px;top:-4px;border:12px solid transparent;border-top:16px solid #fff}
+.blob{position:absolute;right:-78px;top:268px;width:250px;height:240px;border-radius:52% 48% 50% 50%/55% 52% 48% 45%;background:radial-gradient(circle at 30% 25%,#FFD0B0,var(--o) 45%,#B81E00);box-shadow:0 40px 60px rgba(190,40,0,.35),inset -14px -20px 30px rgba(110,10,0,.4),inset 10px 10px 16px rgba(255,235,215,.5);transform:rotate(-8deg)}
+.blob:before{content:"";position:absolute;left:34px;top:26px;width:80px;height:30px;border-radius:50%;background:rgba(255,255,255,.8);filter:blur(3px);transform:rotate(-30deg)}
+.eye{position:absolute;top:92px;width:40px;height:46px;border-radius:50%;background:#fff}.eye:after{content:"";position:absolute;left:6px;top:14px;width:22px;height:22px;border-radius:50%;background:#15110f}
+.foot{position:absolute;left:64px;bottom:34px;font-weight:800;font-size:30px;letter-spacing:-.03em}
+.foot i{font-family:"Instrument Serif";font-weight:400;font-size:40px;color:var(--o)}
+</style></head><body>
+<div id="bg"></div>
+<h1>Want to make<br>your ads <i>better?</i></h1>
+<div class="tag">no After Effects. <b>just code.</b></div>
+<div class="blob"><div class="eye" style="left:50px"></div><div class="eye" style="left:104px"></div></div>
+<div class="ed">
+  <div class="bar"><u style="background:#FF5F57"></u><u style="background:#FEBC2E"></u><u style="background:#28C840"></u><span>ad_final_v7.mp4 · 1080×1920 · 30fps</span><em>Export</em></div>
+  <div class="mon">
+    <img class="s" src="frames/t06.30.jpg"><img src="frames/t11.05.jpg"><img class="m" src="frames/t22.90.jpg"><img src="frames/t32.80.jpg"><img class="s" src="frames/t35.20.jpg">
+  </div>
+  <div class="tc">00:<b>21:04</b></div>
+  <div class="tl">
+    <div class="row" style="top:0" id="v"><div class="lab">VIDEO</div></div>
+    <div class="row vo" style="top:74px"><div class="lab">VOICE</div><div class="wave" id="w1"></div></div>
+    <div class="row" style="top:148px"><div class="lab">SFX</div><div id="fx"></div></div>
+    <div class="row" style="top:222px;height:52px"><div class="lab">MUSIC</div><div class="wave" id="w2"></div></div>
+    <div class="ph"></div>
+  </div>
+</div>
+<div class="foot">Scroll-stopping ads, <i>built frame by frame.</i></div>
+<script>
+const h=n=>{let x=Math.sin(n*127.1+311.7)*43758.5453;return x-Math.floor(x)};
+const bg=document.getElementById('bg');
+for(let i=0;i<26;i++){const d=document.createElement('div'),big=i%5==0,r=big?50+h(i)*70:8+h(i)*16;d.className=big?'bub':'dot';d.style.cssText=`left:${h(i*3)*1080}px;top:${h(i*7)*1350}px;width:${r}px;height:${r}px;opacity:${big?1:.35+h(i)*.5}`;bg.appendChild(d)}
+const fr=['02.70','03.40','06.30','08.70','09.50','11.05','13.10','15.30','20.40','22.90','25.60','28.30','29.90','32.80','35.20'],wd=[78,52,70,56,36,60,56,60,74,78,56,70,66,60,72];
+fr.forEach((f,i)=>{const c=document.createElement('div');c.className='clip';c.style.width=wd[i]+'px';c.style.flex='none';for(let k=0;k<3;k++){const im=new Image();im.src=`frames/t${f}.jpg`;c.appendChild(im)}document.getElementById('v').appendChild(c)});
+const wave=(id,n,max,gate)=>{const w=document.getElementById(id);for(let i=0;i<n;i++){const s=document.createElement('s');const g=gate&&h(Math.floor(i/9)+40)<.25?0.06:1;s.style.height=Math.max(4,max*g*(.25+.75*Math.abs(Math.sin(i*.7)*h(i+9))))+'px';w.appendChild(s)}};
+wave('w1',108,52,true);wave('w2',108,36,false);
+['pop','glitch','bite','whoosh','bite','tick','slam','pop','riser','snap','ding'].forEach((t,i)=>{const d=document.createElement('div');d.className='fx';d.textContent=t;d.style.left=(72+i*79+h(i)*14)+'px';if(i%3==1)d.style.background='#12B76A';if(i==10)d.style.background='var(--o)';document.getElementById('fx').appendChild(d)});
+</script></body></html>
