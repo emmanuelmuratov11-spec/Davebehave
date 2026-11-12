@@ -42,3 +42,10 @@ carried between frames. Frames are rendered out of order across parallel pages a
 - `src/scenes.js`, `src/characters.js`, `src/lib.js`: canvas scenes, cartoon cast, glossy goo.
 - `src/ui.js` + CSS in `src/index.html`: the product UI scene, in real HTML.
 - `assets/fonts`: Inter and Instrument Serif (both SIL Open Font License).
+
+## Voiceover slot
+
+`assets/vo/take.mp3` is one recorded take of the script; `assets/vo/cues.json` cuts it into
+lines and says when each one starts. Edit the times (or swap in a new take and update the
+`from`/`to` marks), then `npm run audio && npm run remux`. The effects duck under the voice.
+`node scripts/audio.cjs --no-vo` builds the mix without it.

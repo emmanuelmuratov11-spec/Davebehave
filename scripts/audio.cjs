@@ -119,15 +119,29 @@ cues.forEach((c, i) => {
 for (let i = 0; i < L.length; i++) { L[i] = Math.tanh(L[i] * 1.3) / 1.3; R[i] = Math.tanh(R[i] * 1.3) / 1.3; }
 const sfx = path.join(OUT, 'sfx.wav'), pre = path.join(OUT, 'premix.wav'), final = path.join(OUT, 'audio.wav');
 writeWav(sfx, L, R);
-if (music) execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', sfx, '-i', music, '-filter_complex',
-  `[1:a]aresample=${SR},atrim=0:${DUR},volume=${MUSIC_GAIN_DB}dB,afade=t=in:d=0.03,afade=t=out:st=${(DUR - 0.7).toFixed(3)}:d=0.7[m];[0:a][m]amix=inputs=2:normalize=0:duration=first[o]`,
-  '-map', '[o]', '-c:a', 'pcm_f32le', pre]);
-else fs.copyFileSync(sfx, pre);
+// voiceover slot: assets/vo/cues.json places clips cut from one recorded take
+const voCues = path.join(ROOT, 'assets/vo/cues.json'), vo = path.join(OUT, 'vo.wav');
+let hasVo = false;
+if (fs.existsSync(voCues) && !process.argv.includes('--no-vo')) {
+  const j = JSON.parse(fs.readFileSync(voCues, 'utf8')), take = path.join(ROOT, 'assets/vo', j.file), PAD = 0.04;
+  if (fs.existsSync(take)) {
+    const parts = j.clips.map((c, i) => `[0:a]atrim=${(c.from - PAD).toFixed(3)}:${(c.to + PAD).toFixed(3)},asetpts=PTS-STARTPTS,atempo=${c.tempo || 1},afade=t=in:d=0.02,areverse,afade=t=in:d=0.03,areverse,aresample=${SR},adelay=${Math.round(warp.toReal(c.at) * 1000)}:all=1[v${i}]`);
+    execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', take, '-filter_complex',
+      `${parts.join(';')};${j.clips.map((_, i) => `[v${i}]`).join('')}amix=inputs=${j.clips.length}:normalize=0,highpass=f=80,apad=whole_dur=${DUR},atrim=0:${DUR},aformat=channel_layouts=stereo[o]`, '-map', '[o]', '-c:a', 'pcm_f32le', vo]);
+    hasVo = true; console.log(`voiceover: ${j.clips.length} clips from ${j.file}`);
+  }
+}
+// mix: voice on top, effects duck under it, music sits lowest
+const ins = ['-i', sfx], fc = []; let n = 1, bus = '[0:a]';
+if (hasVo) { ins.push('-i', vo); fc.push(`[${n}:a]volume=7dB,asplit[vk][vm]`, `[0:a]volume=-3dB[s0]`, `[s0][vk]sidechaincompress=threshold=0.03:ratio=5:attack=15:release=250[sd]`); bus = '[sd][vm]'; n++; }
+if (music) { ins.push('-i', music); fc.push(`[${n}:a]aresample=${SR},atrim=0:${DUR},volume=${MUSIC_GAIN_DB - (hasVo ? 4 : 0)}dB,afade=t=in:d=0.03,afade=t=out:st=${(DUR - 0.7).toFixed(3)}:d=0.7[m]`); bus += '[m]'; n++; }
+if (n === 1) fs.copyFileSync(sfx, pre);
+else execFileSync('ffmpeg', ['-y', '-v', 'error', ...ins, '-filter_complex', `${fc.join(';')};${bus}amix=inputs=${(bus.match(/\[/g) || []).length}:normalize=0:duration=first[o]`, '-map', '[o]', '-c:a', 'pcm_f32le', pre]);
 
 // static gain to target, brick-wall limit, re-measure, correct (no pumping)
 let gain = TARGET - measure(pre).I, m;
 for (let pass = 0; pass < 4; pass++) {
-  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', pre, '-af', `lowpass=f=17000,volume=${gain.toFixed(2)}dB,aresample=192000,alimiter=limit=0.6:attack=3:release=60:level=false,aresample=${SR}`, '-t', DUR.toFixed(4), '-c:a', 'pcm_s24le', final]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', pre, '-af', `apad=whole_dur=${DUR},lowpass=f=17000,volume=${gain.toFixed(2)}dB,aresample=192000,alimiter=limit=0.6:attack=3:release=60:level=false,aresample=${SR}`, '-t', DUR.toFixed(4), '-c:a', 'pcm_s24le', final]);
   m = measure(final); if (Math.abs(m.I - TARGET) < 0.15) break; gain += TARGET - m.I;
 }
 console.log(`audio: ${cues.length} SFX cues, ${DUR.toFixed(2)}s -> out/audio.wav  ${m.I.toFixed(1)} LUFS, peak ${m.TP.toFixed(1)} dBTP`);

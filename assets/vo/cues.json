@@ -1,0 +1,30 @@
+{
+  "note": "Voiceover slot. `from`/`to` are seconds inside take.mp3; `at` is the storyboard time the clip starts; `tempo` speeds a clip up without changing pitch.",
+  "file": "take.mp3",
+  "clips": [
+    { "text": "Your calendar says:",                     "from": 0.25,  "to": 1.28,  "at": 0.45 },
+    { "text": "Twenty-four hundred dollars.",            "from": 3.24,  "to": 4.56,  "at": 1.6 },
+    { "text": "It's lying to you.",                      "from": 4.99,  "to": 5.97,  "at": 3.2 },
+    { "text": "It says you booked",                      "from": 6.5,   "to": 7.23,  "at": 5.15 },
+    { "text": "twenty-four hundred.",                    "from": 7.39,  "to": 8.32,  "at": 5.95 },
+    { "text": "You actually got paid nine hundred.",     "from": 8.86,  "to": 10.78, "at": 6.95 },
+    { "text": "Where'd it go?",                          "from": 11.32, "to": 11.99, "at": 9.15 },
+    { "text": "No-shows ate four hundred.",              "from": 12.49, "to": 13.94, "at": 10.2 },
+    { "text": "Unpaid invoices took six fifty.",         "from": 14.44, "to": 16.5,  "at": 12.05, "tempo": 1.08 },
+    { "text": "Forgot to follow up?",                    "from": 16.8,  "to": 17.71, "at": 14.12 },
+    { "text": "Three hundred.",                          "from": 18.2,  "to": 18.85, "at": 15.15 },
+    { "text": "And the double-booking?",                 "from": 19.41, "to": 20.31, "at": 16.08 },
+    { "text": "One fifty.",                              "from": 20.62, "to": 21.34, "at": 17.05 },
+    { "text": "And you only find out at 11:47 PM.",      "from": 21.91, "to": 24.41, "at": 18.15 },
+    { "text": "With six apps open.",                     "from": 24.8,  "to": 26.1,  "at": 21.45 },
+    { "text": "Now put every job,",                      "from": 26.39, "to": 27.72, "at": 26.15, "tempo": 1.12 },
+    { "text": "every client, and every invoice in one app.", "from": 27.9, "to": 30.3, "at": 27.4, "tempo": 1.12 },
+    { "text": "Tap to pay,",                             "from": 30.82, "to": 31.58, "at": 29.6 },
+    { "text": "and you're paid.",                        "from": 31.84, "to": 32.56, "at": 30.42 },
+    { "text": "Booked.",                                 "from": 33.07, "to": 33.48, "at": 31.95, "tempo": 1.2 },
+    { "text": "Done.",                                   "from": 33.75, "to": 34.13, "at": 32.37, "tempo": 1.2 },
+    { "text": "Paid.",                                   "from": 34.52, "to": 34.9,  "at": 32.79, "tempo": 1.2 },
+    { "text": "Run your whole day in one app.",          "from": 35.15, "to": 36.72, "at": 33.35 },
+    { "text": "Try it free.",                            "from": 37.14, "to": 37.87, "at": 35.05 }
+  ]
+}

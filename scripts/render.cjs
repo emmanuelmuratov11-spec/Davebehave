@@ -33,10 +33,14 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i > 0 ? proces
   await browser.close(); srv.close();
   const audio = path.join(OUT, 'audio.wav'), hasAudio = fs.existsSync(audio);
   if (!hasAudio) console.warn('no out/audio.wav - run `npm run audio` first for sound');
-  execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(fps), '-i', path.join(FR, 'f%05d.png'), ...(hasAudio ? ['-i', audio] : []),
+  // video-only master first, so audio can be swapped later without re-rendering
+  const master = path.join(OUT, 'video.mp4');
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-framerate', String(fps), '-i', path.join(FR, 'f%05d.png'),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '15', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-r', String(fps),
     '-vf', 'scale=in_range=full:out_range=tv:out_color_matrix=bt709,format=yuv420p', '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
-    ...(hasAudio ? ['-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-shortest'] : []), '-movflags', '+faststart', path.join(OUT, 'final.mp4')], { stdio: 'inherit' });
+    '-movflags', '+faststart', master], { stdio: 'inherit' });
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-i', master, ...(hasAudio ? ['-i', audio, '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000'] : []),
+    '-c:v', 'copy', '-movflags', '+faststart', path.join(OUT, 'final.mp4')], { stdio: 'inherit' });
   if (!process.argv.includes('--keep-frames')) fs.rmSync(FR, { recursive: true, force: true });
   console.log(`done -> out/final.mp4  (${((Date.now() - t0) / 1000).toFixed(0)}s)`);
 })();
